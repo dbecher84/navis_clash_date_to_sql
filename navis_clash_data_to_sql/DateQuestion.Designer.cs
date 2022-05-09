@@ -79,6 +79,7 @@ namespace date_question
             this.Controls.Add(this.button1);
             this.Controls.Add(this.textBox1);
             this.Name = "DateQuestion";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Use Today Date";
             this.ResumeLayout(false);
             this.PerformLayout();

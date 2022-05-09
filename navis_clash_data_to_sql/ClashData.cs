@@ -171,34 +171,39 @@ namespace ClashData
                                 {
                                     var group_name = issue.DisplayName;
 
-                                    foreach (SavedItem groupedClashes in ((GroupItem)issue).Children)
+                                    //skip clashes places in a group called "Approved"
+                                    if (group_name.ToLower() != "approved")
                                     {
-                                        ClashResult gclashResult = groupedClashes as ClashResult;
-                                        //var testing_param = groupedClashes.DisplayName;
-                                        //MessageBox.Show(testing_param);
+                                        foreach (SavedItem groupedClashes in ((GroupItem)issue).Children)
+                                        {
+                                            ClashResult gclashResult = groupedClashes as ClashResult;
+                                            //var testing_param = groupedClashes.DisplayName;
+                                            //MessageBox.Show(testing_param);
 
-                                        DateTime cTime = (DateTime)gclashResult.CreatedTime;
-                                        String newTime = cTime.ToString("yyyy.MM.dd");
+                                            DateTime cTime = (DateTime)gclashResult.CreatedTime;
+                                            String newTime = cTime.ToString("yyyy.MM.dd");
 
-                                        if (gclashResult.Item1 != null && gclashResult.Item2 != null)
-                                        {
-                                            dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, gclashResult.Item2.InstanceGuid, export_date, gclashResult.AssignedTo, projectNum);
-                                        }
-                                        if (gclashResult.Item1 == null && gclashResult.Item2 == null)
-                                        {
-                                            dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, "no_guid", "no_guid", export_date, gclashResult.AssignedTo, projectNum);
-                                        }
-                                        if (gclashResult.Item1 != null && gclashResult.Item2 == null)
-                                        {
-                                            dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, "no_guid", export_date, gclashResult.AssignedTo, projectNum);
-                                        }
-                                        if (gclashResult.Item1 == null && gclashResult.Item2 != null)
-                                        {
-                                            dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, "no_guid", gclashResult.Item2.InstanceGuid, export_date, gclashResult.AssignedTo, projectNum);
-                                        }
+                                            if (gclashResult.Item1 != null && gclashResult.Item2 != null)
+                                            {
+                                                dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, gclashResult.Item2.InstanceGuid, export_date, gclashResult.AssignedTo, projectNum);
+                                            }
+                                            if (gclashResult.Item1 == null && gclashResult.Item2 == null)
+                                            {
+                                                dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, "no_guid", "no_guid", export_date, gclashResult.AssignedTo, projectNum);
+                                            }
+                                            if (gclashResult.Item1 != null && gclashResult.Item2 == null)
+                                            {
+                                                dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, "no_guid", export_date, gclashResult.AssignedTo, projectNum);
+                                            }
+                                            if (gclashResult.Item1 == null && gclashResult.Item2 != null)
+                                            {
+                                                dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, "no_guid", gclashResult.Item2.InstanceGuid, export_date, gclashResult.AssignedTo, projectNum);
+                                            }
 
-                                        //dt_test_data.Rows.Add(testId, testName, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, gclashResult.Item2.InstanceGuid, export_date);
+                                            //dt_test_data.Rows.Add(testId, testName, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, gclashResult.Item2.InstanceGuid, export_date);
+                                        }
                                     }
+
                                 }
                             }
                             ////Write Clash date to XML file. Used with old Python Scipt-------------------------------------------------------
