@@ -21,8 +21,9 @@ using System.Text.RegularExpressions;
 namespace ClashData
 {
     //plugin attributes require Name, DeveloperID and optional parameters
-    [PluginAttribute("clash_sql_export", "Derek B", DisplayName = "Export Clashes to SQL", ToolTip = "Exports clashs data to SQL Database.")]
-    [AddInPluginAttribute(AddInLocation.AddIn)]
+    [PluginAttribute("clash_sql_export", "Derek B", DisplayName = "Export Clashes to SQL", ToolTip = "Exports clashs data to SQL Database.", ExtendedToolTip = "Version 2022.1.0.1")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "C:\\Program Files\\Autodesk\\Navisworks Manage 2021\\Plugins\\clash_sql_export\\16x16_sql_export_img.bmp",
+        LargeIcon = "C:\\Program Files\\Autodesk\\Navisworks Manage 2021\\Plugins\\clash_sql_export\\32x32_sql_export_img.bmp")]
 
     public class ClashData : AddInPlugin
     {
@@ -96,150 +97,171 @@ namespace ClashData
                     List<string> failList = new List<string>();
                     List<string> emptyTestList = new List<string>();
 
-                    //Store clash data in data table--------------------------------------
-                    foreach (ClashTest test in allTests_copy.Tests)
+                    ////good to proceed indicator collecting and writing clashes
+                    string proceed = "yes";
+                    ////test database connection
+                    string dbTestResult = fill_in_db.FillDB.SQL_test();
+
+                    if (proceed == "yes")
                     {
-                        //This location will produce one xml per test.----------------------------------------
-                        //Data set to store data tables
-                        DataSet ds = new DataSet();
-
-                        //test id an name seperated-----------------------------------------------------------
-                        string testFullName = test.DisplayName.ToString();
-                        string testId = testFullName.Substring(0, 5);
-                        //MessageBox.Show(testId);
-                        string testName = testFullName.Substring(6);
-                        //MessageBox.Show(testName);
-
-                        //----------------------------------------------------------------------------------
-
-                        if (test.LastRun != null)
+                        //Store clash data in data table--------------------------------------
+                        foreach (ClashTest test in allTests_copy.Tests)
                         {
-                            //Create data table to stor clash data--------------------------------------------
-                            //DataTable dt_test_data = new DataTable("clash_results"); //old entry: test.DisplayName.ToString()
-                            DataTable dt_test_data = new DataTable(test.DisplayName.ToString()); //old entry: test.DisplayName.ToString()
-                            dt_test_data.Columns.Add(new DataColumn("key_id", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("test_id", typeof(System.String)));
-                            //dt_test_data.Columns.Add(new DataColumn("test_name", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("clash_guid", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("clash_id", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("date_created", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("group_name", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("status", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("element_1_guid", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("element_2_guid", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("export_date", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("assigned_to", typeof(System.String)));
-                            dt_test_data.Columns.Add(new DataColumn("project_num", typeof(System.String)));
+                            //This location will produce one xml per test.----------------------------------------
+                            //Data set to store data tables
+                            //DataSet ds = new DataSet();
 
+                            //test id an name seperated-----------------------------------------------------------
+                            string testFullName = test.DisplayName.ToString();
+                            string testId = testFullName.Substring(0, 5);
+                            //MessageBox.Show(testId);
+                            string testName = testFullName.Substring(6);
+                            //MessageBox.Show(testName);
 
-                            foreach (SavedItem issue in test.Children)
+                            //----------------------------------------------------------------------------------
+
+                            if (test.LastRun != null && proceed == "yes")
                             {
-                                //Sort individual clashes------------------------------------------------------------
-                                if (issue.IsGroup == false)
+                                //Create data table to stor clash data--------------------------------------------
+                                //DataTable dt_test_data = new DataTable("clash_results"); //old entry: test.DisplayName.ToString()
+                                DataTable dt_test_data = new DataTable(test.DisplayName.ToString()); //old entry: test.DisplayName.ToString()
+                                dt_test_data.Columns.Add(new DataColumn("key_id", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("test_id", typeof(System.String)));
+                                //dt_test_data.Columns.Add(new DataColumn("test_name", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("clash_guid", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("clash_id", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("date_created", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("group_name", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("status", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("element_1_guid", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("element_2_guid", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("export_date", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("assigned_to", typeof(System.String)));
+                                dt_test_data.Columns.Add(new DataColumn("project_num", typeof(System.String)));
+
+
+                                foreach (SavedItem issue in test.Children)
                                 {
-                                    ClashResult clashResult = issue as ClashResult;
-
-                                    DateTime cTime = (DateTime)clashResult.CreatedTime;
-                                    String newTime = cTime.ToString("yyyy.MM.dd");
-
-                                    if (clashResult.Item1 != null && clashResult.Item2 != null)
+                                    //Sort individual clashes------------------------------------------------------------
+                                    if (issue.IsGroup == false)
                                     {
-                                        dt_test_data.Rows.Add(clashResult.Guid + export_date, testId, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, clashResult.Item1.InstanceGuid, clashResult.Item2.InstanceGuid, export_date, clashResult.AssignedTo, projectNum);
-                                    }
-                                    if (clashResult.Item1 == null && clashResult.Item2 == null)
-                                    {
-                                        dt_test_data.Rows.Add(clashResult.Guid + export_date, testId, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, "no_guid", "no_guid", export_date, clashResult.AssignedTo, clashResult.Guid + export_date, projectNum);
-                                    }
-                                    if (clashResult.Item1 != null && clashResult.Item2 == null)
-                                    {
-                                        dt_test_data.Rows.Add(clashResult.Guid + export_date, testId, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, clashResult.Item1.InstanceGuid, "no_guid", export_date, clashResult.AssignedTo, projectNum);
-                                    }
-                                    if (clashResult.Item1 == null && clashResult.Item2 != null)
-                                    {
-                                        dt_test_data.Rows.Add(clashResult.Guid + export_date, testId, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, "no_guid", clashResult.Item2.InstanceGuid, export_date, clashResult.AssignedTo, projectNum);
-                                    }
+                                        ClashResult clashResult = issue as ClashResult;
 
-                                    //dt_test_data.Rows.Add(testId, testName, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, clashResult.Item1.InstanceGuid, clashResult.Item2.InstanceGuid, export_date);
-                                }
+                                        DateTime cTime = (DateTime)clashResult.CreatedTime;
+                                        String newTime = cTime.ToString("yyyy.MM.dd");
 
-                                //find a property
-                                //clashResult.Items.PropertyCategories.FindPropertyByDisplayName("Item", "GUID") 
-
-
-                                //sort clashes in groups-----------------------------------------------------------
-                                if (issue.IsGroup)
-                                {
-                                    var group_name = issue.DisplayName;
-
-                                    //skip clashes places in a group called "Approved"
-                                    if (group_name.ToLower() != "approved")
-                                    {
-                                        foreach (SavedItem groupedClashes in ((GroupItem)issue).Children)
+                                        if (clashResult.Item1 != null && clashResult.Item2 != null)
                                         {
-                                            ClashResult gclashResult = groupedClashes as ClashResult;
-                                            //var testing_param = groupedClashes.DisplayName;
-                                            //MessageBox.Show(testing_param);
+                                            dt_test_data.Rows.Add(clashResult.Guid + export_date, testId, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, clashResult.Item1.InstanceGuid, clashResult.Item2.InstanceGuid, export_date, clashResult.AssignedTo, projectNum);
+                                        }
+                                        if (clashResult.Item1 == null && clashResult.Item2 == null)
+                                        {
+                                            dt_test_data.Rows.Add(clashResult.Guid + export_date, testId, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, "no_guid", "no_guid", export_date, clashResult.AssignedTo, clashResult.Guid + export_date, projectNum);
+                                        }
+                                        if (clashResult.Item1 != null && clashResult.Item2 == null)
+                                        {
+                                            dt_test_data.Rows.Add(clashResult.Guid + export_date, testId, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, clashResult.Item1.InstanceGuid, "no_guid", export_date, clashResult.AssignedTo, projectNum);
+                                        }
+                                        if (clashResult.Item1 == null && clashResult.Item2 != null)
+                                        {
+                                            dt_test_data.Rows.Add(clashResult.Guid + export_date, testId, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, "no_guid", clashResult.Item2.InstanceGuid, export_date, clashResult.AssignedTo, projectNum);
+                                        }
 
-                                            DateTime cTime = (DateTime)gclashResult.CreatedTime;
-                                            String newTime = cTime.ToString("yyyy.MM.dd");
+                                        //dt_test_data.Rows.Add(testId, testName, clashResult.Guid, clashResult.DisplayName, newTime, "not_grouped", clashResult.Status, clashResult.Item1.InstanceGuid, clashResult.Item2.InstanceGuid, export_date);
+                                    }
 
-                                            if (gclashResult.Item1 != null && gclashResult.Item2 != null)
-                                            {
-                                                dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, gclashResult.Item2.InstanceGuid, export_date, gclashResult.AssignedTo, projectNum);
-                                            }
-                                            if (gclashResult.Item1 == null && gclashResult.Item2 == null)
-                                            {
-                                                dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, "no_guid", "no_guid", export_date, gclashResult.AssignedTo, projectNum);
-                                            }
-                                            if (gclashResult.Item1 != null && gclashResult.Item2 == null)
-                                            {
-                                                dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, "no_guid", export_date, gclashResult.AssignedTo, projectNum);
-                                            }
-                                            if (gclashResult.Item1 == null && gclashResult.Item2 != null)
-                                            {
-                                                dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, "no_guid", gclashResult.Item2.InstanceGuid, export_date, gclashResult.AssignedTo, projectNum);
-                                            }
+                                    //find a property
+                                    //clashResult.Items.PropertyCategories.FindPropertyByDisplayName("Item", "GUID") 
 
-                                            //dt_test_data.Rows.Add(testId, testName, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, gclashResult.Item2.InstanceGuid, export_date);
+
+                                    //sort clashes in groups-----------------------------------------------------------
+                                    if (issue.IsGroup)
+                                    {
+                                        var group_name = issue.DisplayName;
+
+                                        //skip clashes places in a group called "Approved"
+                                        if (group_name.ToLower() != "approved")
+                                        {
+                                            foreach (SavedItem groupedClashes in ((GroupItem)issue).Children)
+                                            {
+                                                ClashResult gclashResult = groupedClashes as ClashResult;
+                                                //var testing_param = groupedClashes.DisplayName;
+                                                //MessageBox.Show(testing_param);
+
+                                                DateTime cTime = (DateTime)gclashResult.CreatedTime;
+                                                String newTime = cTime.ToString("yyyy.MM.dd");
+
+                                                if (gclashResult.Item1 != null && gclashResult.Item2 != null)
+                                                {
+                                                    dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, gclashResult.Item2.InstanceGuid, export_date, gclashResult.AssignedTo, projectNum);
+                                                }
+                                                if (gclashResult.Item1 == null && gclashResult.Item2 == null)
+                                                {
+                                                    dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, "no_guid", "no_guid", export_date, gclashResult.AssignedTo, projectNum);
+                                                }
+                                                if (gclashResult.Item1 != null && gclashResult.Item2 == null)
+                                                {
+                                                    dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, "no_guid", export_date, gclashResult.AssignedTo, projectNum);
+                                                }
+                                                if (gclashResult.Item1 == null && gclashResult.Item2 != null)
+                                                {
+                                                    dt_test_data.Rows.Add(gclashResult.Guid + export_date, testId, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, "no_guid", gclashResult.Item2.InstanceGuid, export_date, gclashResult.AssignedTo, projectNum);
+                                                }
+
+                                                //dt_test_data.Rows.Add(testId, testName, gclashResult.Guid, gclashResult.DisplayName, newTime, group_name, gclashResult.Status, gclashResult.Item1.InstanceGuid, gclashResult.Item2.InstanceGuid, export_date);
+                                            }
                                         }
                                     }
-
                                 }
-                            }
-                            ////Write Clash date to XML file. Used with old Python Scipt-------------------------------------------------------
-                            //dt_test_data.WriteXml(sSelectedPath + @"\" + testFullName + "_" + export_date + ".xml", XmlWriteMode.WriteSchema);
-                            ////--------------------------------------------------------------------------------------------------------------
+                                ////Write Clash date to XML file. Used with old Python Scipt-------------------------------------------------------
+                                //dt_test_data.WriteXml(sSelectedPath + @"\" + testFullName + "_" + export_date + ".xml", XmlWriteMode.WriteSchema);
+                                ////--------------------------------------------------------------------------------------------------------------
 
-                            ////used to display test data tables in a date set
-                            //ds.Tables.Add(dt_test_data);
+                                ////used to display test data tables in a date set
+                                //ds.Tables.Add(dt_test_data);
 
-                            //using (var f = new display_xml.dataForm())
-                            //{
-                            //    f.dataGridView1.DataSource = dt_test_data;
-                            //    f.ShowDialog();
-                            //}
+                                //using (var f = new display_xml.dataForm())
+                                //{
+                                //    f.dataGridView1.DataSource = dt_test_data;
+                                //    f.ShowDialog();
+                                //}
 
-                            //fill_in_db.FillDB.Main_C(dt_test_data);
-                            string dbResult = fill_in_db.FillDB.Main_C(dt_test_data);
-                            if (dbResult.Substring(0, 1) == "P")
-                            {
-                                //MessageBox.Show(dbResult[0].ToString()+ dbResult[1].ToString()+dbResult[2].ToString());
-                                passList.Add(dbResult.Substring(2, 5));
-                            }
-                            if (dbResult.Substring(0, 1) == "F")
-                            {
-                                //MessageBox.Show(dbResult[0].ToString() + dbResult[1].ToString() + dbResult[2].ToString());
-                                failList.Add(dbResult.Substring(2, 5));
-                            }
-                            if (dbResult.Substring(0, 1) == "E")
-                            {
-                                //MessageBox.Show(dbResult[0].ToString() + dbResult[1].ToString() + dbResult[2].ToString());
-                                emptyTestList.Add(dbResult.Substring(2, 5));
+                                //Fillin database one test at a time----------------------------------------------------------------------------
+
+                                if (dbTestResult == "Success")
+                                {
+                                    string dbResult = fill_in_db.FillDB.Main_C(dt_test_data);
+                                    if (dbResult.Substring(0, 1) == "P")
+                                    {
+                                        //MessageBox.Show(dbResult[0].ToString()+ dbResult[1].ToString()+dbResult[2].ToString());
+                                        passList.Add(dbResult.Substring(2, 5));
+                                    }
+                                    if (dbResult.Substring(0, 1) == "F")
+                                    {
+                                        //MessageBox.Show(dbResult[0].ToString() + dbResult[1].ToString() + dbResult[2].ToString());
+                                        failList.Add(dbResult.Substring(2, 5));
+                                    }
+                                    if (dbResult.Substring(0, 1) == "E")
+                                    {
+                                        //MessageBox.Show(dbResult[0].ToString() + dbResult[1].ToString() + dbResult[2].ToString());
+                                        emptyTestList.Add(dbResult.Substring(2, 5));
+                                    }
+                                }
+                                else
+                                {
+                                    MessageBox.Show("Unable to write data to database. Check network/VPN", "Database Error");
+                                    proceed = "no";
+                                }
+
                             }
                         }
-
                     }
-                    ////Show list of tests passed and failed
+                    else
+                    {
+                        MessageBox.Show("Process was terminated.", "Error");
+                    }
+
+                    ////Show list of tests passed and failed------------------------------------------------------------------------------------------
                     string delim = ", ";
                     //string messageP = String.Join(delim, passList);
                     //string messageF = String.Join(delim, failList);

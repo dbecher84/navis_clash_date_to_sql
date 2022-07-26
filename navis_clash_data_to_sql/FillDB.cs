@@ -29,9 +29,10 @@ namespace fill_in_db
         //    }
         //}
         ////-------------------------------------------------------------------------------------------
+        
 
         ////Code used to test connection to database-----------------------------------------------------
-        public static void SQL_test()
+        public static string SQL_test()
         {
             String cs = "Data Source = USBLB1DB002\\APP05;Initial Catalog=NWClashData;Integrated Security=true";
             try
@@ -53,19 +54,23 @@ namespace fill_in_db
                 conn.Close();
                 foreach (string sTable in Table_list)
                 {
-                    MessageBox.Show("Table name", sTable);
+                    //MessageBox.Show("Table name", sTable);
+                    return "Success";
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error with connection string.", ex.Message);
+                MessageBox.Show("Error connecting to datbase. Check network/VPN Connection.", ex.Message);
+                return "Fail";
             }
+            return "Fail";
         }
         ////--------------------------------------------------------------------------------------
 
         public static string Main_C(DataTable input_table)
         {
             String cs = "Data Source = USBLB1DB002\\APP05;Initial Catalog=NWClashData;Integrated Security=true";
+            //String cs = "Data Source = USBLB1DB002\\APP05;Initial Catalog=NWClashDataTest;Integrated Security=true";
             try
             {
                 SqlConnection conn = new SqlConnection(cs);
@@ -82,6 +87,7 @@ namespace fill_in_db
                         {
                             bulkCopyTable.WriteToServer(input_table);
                             conn.Close();
+                            //Pass
                             string testName = "P," + input_table.TableName.ToString();
                             return testName;
                             //MessageBox.Show("Data was sucessfully added to the database for table " + input_table.TableName);
@@ -90,12 +96,14 @@ namespace fill_in_db
                         {
                             //MessageBox.Show(ex.Message, "Error writing" + input_table.TableName + "data to database.");
                             conn.Close();
+                            //Fail
                             string testName = "F," + input_table.TableName.ToString();
                             return testName;
                         }
                     }
                     else
                     {
+                        //Empty test
                         string itemResult = "E," + input_table.TableName.ToString();
                         return itemResult;
                     }
