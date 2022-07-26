@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Navsiworks 2021 Clash Results Export")]
-[assembly: AssemblyDescription("Export Navisworks Clash Results to SQL Database")]
+[assembly: AssemblyDescription("Export Clash Results to SQL Database for Navisworks 2021")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("navis_test")]
