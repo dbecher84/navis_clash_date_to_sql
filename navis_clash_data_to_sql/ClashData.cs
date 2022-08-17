@@ -22,8 +22,8 @@ namespace ClashData
 {
     //plugin attributes require Name, DeveloperID and optional parameters
     [PluginAttribute("clash_sql_export", "Derek B", DisplayName = "Export Clashes to SQL", ToolTip = "Exports clashs data to SQL Database.", ExtendedToolTip = "Version 2022.1.0.1")]
-    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "C:\\Program Files\\Autodesk\\Navisworks Manage 2021\\Plugins\\clash_sql_export\\16x16_sql_export_img.bmp",
-        LargeIcon = "C:\\Program Files\\Autodesk\\Navisworks Manage 2021\\Plugins\\clash_sql_export\\32x32_sql_export_img.bmp")]
+    [AddInPluginAttribute(AddInLocation.AddIn, Icon = "C:\\Program Files\\Autodesk\\Navisworks Manage 2021\\Plugins\\clash_sql_export\\resources\\16x16_sql_export_img.bmp",
+        LargeIcon = "C:\\Program Files\\Autodesk\\Navisworks Manage 2021\\Plugins\\clash_sql_export\\resources\\32x32_sql_export_img.bmp")]
 
     public class ClashData : AddInPlugin
     {
